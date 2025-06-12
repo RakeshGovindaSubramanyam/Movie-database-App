@@ -1,3 +1,4 @@
+from flask import render_template, redirect, url_for
 from flask import Flask, request, jsonify
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -120,6 +121,47 @@ def search_movie():
     else:
         return jsonify({"error": "Movie not found"}), 404
 
+
+@app.route('/ui/add_movie', methods=['POST'])
+def ui_add_movie():
+    title = request.form.get('title')
+    if not title:
+        return redirect(url_for('ui'))
+
+    url = f"http://www.omdbapi.com/?t={title}&apikey={OMDB_API_KEY}"
+    res = requests.get(url)
+    data = res.json()
+
+    if data.get('Response') == 'True':
+        session = Session()
+        movie = Movie(
+            title=data.get('Title'),
+            year=int(data.get('Year')) if data.get('Year') and data.get('Year').isdigit() else None,
+            genre=data.get('Genre'),
+            rating=0.0
+        )
+        session.add(movie)
+        session.commit()
+    return redirect(url_for('ui'))
+
+
+@app.route('/ui/rate_movie/<int:id>', methods=['POST'])
+def ui_rate_movie(id):
+    rating = request.form.get('rating')
+    if rating:
+        session = Session()
+        movie = session.query(Movie).get(id)
+        if movie:
+            movie.rating = float(rating)
+            session.commit()
+    return redirect(url_for('ui'))
+
+
+@app.route('/ui')
+def ui():
+    session = Session()
+    movies = session.query(Movie).all()
+    return render_template('index.html', movies=movies)
 
 if __name__ == '__main__':
     app.run(debug=True)
