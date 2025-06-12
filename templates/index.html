@@ -4,10 +4,24 @@
     <meta charset="UTF-8">
     <title>Movie Database UI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .poster {
+            max-width: 100px;
+            height: auto;
+        }
+    </style>
 </head>
 <body class="bg-light">
 <div class="container py-5">
     <h1 class="mb-4">🎬 Movie Database</h1>
+
+    <!-- Search Bar -->
+    <form class="mb-4" method="GET" action="{{ url_for('ui') }}">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search movies..." value="{{ query or '' }}">
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
+        </div>
+    </form>
 
     <!-- Add Movie Form -->
     <form class="mb-4" method="POST" action="{{ url_for('ui_add_movie') }}">
@@ -18,37 +32,44 @@
     </form>
 
     <!-- Movie List -->
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Year</th>
-                <th>Genre</th>
-                <th>Rating</th>
-                <th>Rate</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for movie in movies %}
-            <tr>
-                <td>{{ movie.title }}</td>
-                <td>{{ movie.year }}</td>
-                <td>{{ movie.genre }}</td>
-                <td>{{ movie.rating }}</td>
-                <td>
-                    <form method="POST" action="{{ url_for('ui_rate_movie', id=movie.id) }}" class="d-flex">
-                        <input type="number" step="0.1" min="0" max="10" name="rating" class="form-control form-control-sm" required>
-                        <button type="submit" class="btn btn-sm btn-success ms-1">Update</button>
-                    </form>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="5" class="text-center text-muted">No movies found</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% for movie in movies %}
+    <div class="card mb-3">
+        <div class="row g-0">
+            <div class="col-md-2">
+                {% if movie.poster and movie.poster != "N/A" %}
+                <img src="{{ movie.poster }}" class="img-fluid rounded-start poster">
+                {% endif %}
+            </div>
+            <div class="col-md-10">
+                <div class="card-body">
+                    <h5 class="card-title">{{ movie.title }} ({{ movie.year }})</h5>
+                    <p class="card-text"><strong>Genre:</strong> {{ movie.genre }}</p>
+                    <p class="card-text"><strong>Director:</strong> {{ movie.director }}</p>
+                    <p class="card-text"><strong>Actors:</strong> {{ movie.actors }}</p>
+                    <p class="card-text"><strong>Plot:</strong> {{ movie.plot }}</p>
+                    <p class="card-text"><strong>Rating:</strong> {{ movie.rating }}</p>
+
+                    <div class="d-flex">
+                        <!-- Rate -->
+                        <form method="POST" action="{{ url_for('ui_rate_movie', id=movie.id) }}" class="me-2">
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.1" min="0" max="10" name="rating" class="form-control" required>
+                                <button type="submit" class="btn btn-success">Rate</button>
+                            </div>
+                        </form>
+
+                        <!-- Delete -->
+                        <form method="POST" action="{{ url_for('ui_delete_movie', id=movie.id) }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-muted">No movies found.</p>
+    {% endfor %}
 </div>
 </body>
 </html>
