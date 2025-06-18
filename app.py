@@ -19,7 +19,13 @@ Session = sessionmaker(bind=engine)
 # OMDb API key
 OMDB_API_KEY = os.getenv("OMDB_API_KEY")
 
+# Redirect root URL to /ui
 @app.route("/")
+def index():
+    return redirect(url_for("ui"))
+
+# Optional API route for a welcome message
+@app.route("/api")
 def home():
     return jsonify({"message": "Welcome to the Movie Database API"})
 
